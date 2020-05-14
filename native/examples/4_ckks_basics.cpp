@@ -68,11 +68,11 @@ void example_ckks_basics() // specifies function doesn't return a value
     We use CoeffModulus::Create to generate primes of the appropriate size. Note
     that our coeff_modulus is 200 bits total, which is below the bound for our
     poly_modulus_degree: CoeffModulus::MaxBitCount(8192) returns 218.
-    */
-    size_t poly_modulus_degree = 8192;
+    */ // so coeff_modulus is 200 < 218 (max number of bits possible)
+    size_t poly_modulus_degree = 8192; // why is the degree chosen like this?
     parms.set_poly_modulus_degree(poly_modulus_degree);
     parms.set_coeff_modulus(CoeffModulus::Create(poly_modulus_degree, { 60, 40, 40, 60 }));
-
+	// What is the significance of the 60, 40, 40, 60?
     /*
     We choose the initial scale to be 2^40. At the last level, this leaves us
     60-40=20 bits of precision before the decimal point, and enough (roughly
@@ -80,7 +80,7 @@ void example_ckks_basics() // specifies function doesn't return a value
     primes are 40 bits (in fact, they are very close to 2^40), we can achieve
     scale stabilization as described above.
     */
-    double scale = pow(2.0, 40);
+    double scale = pow(2.0, 40); // this is the scale factor which we use to encode.
 
     auto context = SEALContext::Create(parms);
     print_parameters(context);
@@ -98,8 +98,8 @@ void example_ckks_basics() // specifies function doesn't return a value
     size_t slot_count = encoder.slot_count();
     cout << "Number of slots: " << slot_count << endl;
 
-    vector<double> input;
-    input.reserve(slot_count);
+    vector<double> input; //initialise the input vector
+    input.reserve(slot_count); // slot_count = n/2
     double curr_point = 0;
     double step_size = 1.0 / (static_cast<double>(slot_count) - 1);
     for (size_t i = 0; i < slot_count; i++, curr_point += step_size)
@@ -114,13 +114,13 @@ void example_ckks_basics() // specifies function doesn't return a value
     /*
     We create plaintexts for PI, 0.4, and 1 using an overload of CKKSEncoder::encode
     that encodes the given floating-point value to every slot in the vector.
-    */
+    */ // encoding of a scalar F(x)=pix^3+0.4x+1
     Plaintext plain_coeff3, plain_coeff1, plain_coeff0;
-    encoder.encode(3.14159265, scale, plain_coeff3);
-    encoder.encode(0.4, scale, plain_coeff1);
-    encoder.encode(1.0, scale, plain_coeff0);
+    encoder.encode(3.14159265, scale, plain_coeff3); // plain_coeff3 ~ Delta pi
+    encoder.encode(0.4, scale, plain_coeff1); // for coefficient of x
+    encoder.encode(1.0, scale, plain_coeff0); // for the coefficient of the constant term
 
-    Plaintext x_plain;
+    Plaintext x_plain; // encode the input vector into a plaintext x_plain
     print_line(__LINE__);
     cout << "Encode input vectors." << endl;
     encoder.encode(input, scale, x_plain);
