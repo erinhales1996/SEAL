@@ -125,7 +125,7 @@ void example_ckks_basics() // specifies function doesn't return a value
     cout << "Encode input vectors." << endl;
     encoder.encode(input, scale, x_plain);
     Ciphertext x1_encrypted;
-    encryptor.encrypt(x_plain, x1_encrypted);
+    encryptor.encrypt(x_plain, x1_encrypted); // the encryption function is here
 
     /*
     To compute x^3 we first compute x^2 and relinearize. However, the scale has
@@ -134,8 +134,8 @@ void example_ckks_basics() // specifies function doesn't return a value
     Ciphertext x3_encrypted;
     print_line(__LINE__);
     cout << "Compute x^2 and relinearize:" << endl;
-    evaluator.square(x1_encrypted, x3_encrypted);
-    evaluator.relinearize_inplace(x3_encrypted, relin_keys);
+    evaluator.square(x1_encrypted, x3_encrypted); // square the ciphertext (we got x1_encrypted from encrypting x_plain, x3_encrypted is the output of x^3)
+    evaluator.relinearize_inplace(x3_encrypted, relin_keys); // relinearise
     cout << "    + Scale of x^2 before rescale: " << log2(x3_encrypted.scale()) << " bits" << endl;
 
     /*
@@ -146,7 +146,7 @@ void example_ckks_basics() // specifies function doesn't return a value
     */
     print_line(__LINE__);
     cout << "Rescale x^2." << endl;
-    evaluator.rescale_to_next_inplace(x3_encrypted);
+    evaluator.rescale_to_next_inplace(x3_encrypted); // rescale x^3 - want to maintain same scaling factor during computation
     cout << "    + Scale of x^2 after rescale: " << log2(x3_encrypted.scale()) << " bits" << endl;
 
     /*
@@ -160,9 +160,9 @@ void example_ckks_basics() // specifies function doesn't return a value
     print_line(__LINE__);
     cout << "Compute and rescale PI*x." << endl;
     Ciphertext x1_encrypted_coeff3;
-    evaluator.multiply_plain(x1_encrypted, plain_coeff3, x1_encrypted_coeff3);
+    evaluator.multiply_plain(x1_encrypted, plain_coeff3, x1_encrypted_coeff3); // multiplication between plaintext and ciphertext (mult pi by enc(x^3))
     cout << "    + Scale of PI*x before rescale: " << log2(x1_encrypted_coeff3.scale()) << " bits" << endl;
-    evaluator.rescale_to_next_inplace(x1_encrypted_coeff3);
+    evaluator.rescale_to_next_inplace(x1_encrypted_coeff3); // rescale the encrypted coefficient?
     cout << "    + Scale of PI*x after rescale: " << log2(x1_encrypted_coeff3.scale()) << " bits" << endl;
 
     /*
@@ -188,7 +188,7 @@ void example_ckks_basics() // specifies function doesn't return a value
     cout << "Compute and rescale 0.4*x." << endl;
     evaluator.multiply_plain_inplace(x1_encrypted, plain_coeff1);
     cout << "    + Scale of 0.4*x before rescale: " << log2(x1_encrypted.scale()) << " bits" << endl;
-    evaluator.rescale_to_next_inplace(x1_encrypted);
+    evaluator.rescale_to_next_inplace(x1_encrypted); // rescale_to_next_implace decreases the modulus, and scales the message down to match.
     cout << "    + Scale of 0.4*x after rescale: " << log2(x1_encrypted.scale()) << " bits" << endl;
 
     /*
