@@ -189,6 +189,7 @@ void example_ckks_basics() // specifies function doesn't return a value
     evaluator.multiply_plain_inplace(x1_encrypted, plain_coeff1);
     cout << "    + Scale of 0.4*x before rescale: " << log2(x1_encrypted.scale()) << " bits" << endl;
     evaluator.rescale_to_next_inplace(x1_encrypted); // rescale_to_next_implace decreases the modulus, and scales the message down to match.
+
     cout << "    + Scale of 0.4*x after rescale: " << log2(x1_encrypted.scale()) << " bits" << endl;
 
     /*
@@ -203,8 +204,8 @@ void example_ckks_basics() // specifies function doesn't return a value
     cout << endl;
     print_line(__LINE__);
     cout << "Parameters used by all three terms are different." << endl;
-    cout << "    + Modulus chain index for x3_encrypted: "
-         << context->get_context_data(x3_encrypted.parms_id())->chain_index() << endl;
+    cout << "    + Modulus chain index for x3_encrypted: " // the initial parameters had index 0, and index increases with parameter chain
+         << context->get_context_data(x3_encrypted.parms_id())->chain_index() << endl; //x3 has chain index 0 because it was rescaled twice (see next comment)
     cout << "    + Modulus chain index for x1_encrypted: "
          << context->get_context_data(x1_encrypted.parms_id())->chain_index() << endl;
     cout << "    + Modulus chain index for plain_coeff0: "
@@ -255,7 +256,7 @@ void example_ckks_basics() // specifies function doesn't return a value
     the scale of PI*x^3 and 0.4*x to 2^40.
     */
     print_line(__LINE__);
-    cout << "Normalize scales to 2^40." << endl;
+    cout << "Normalize scales to 2^40." << endl; // so now all the scales are 2^40?
     x3_encrypted.scale() = pow(2.0, 40);
     x1_encrypted.scale() = pow(2.0, 40);
 
@@ -266,7 +267,7 @@ void example_ckks_basics() // specifies function doesn't return a value
     of the coefficient modulus when it is simply not needed.
     */
     print_line(__LINE__);
-    cout << "Normalize encryption parameters to the lowest level." << endl;
+    cout << "Normalize encryption parameters to the lowest level." << endl; // now we need to modswitch so that x1_encryped and plain_coeff0 are also at level 0 (the lowest level of any term).
     parms_id_type last_parms_id = x3_encrypted.parms_id();
     evaluator.mod_switch_to_inplace(x1_encrypted, last_parms_id);
     evaluator.mod_switch_to_inplace(plain_coeff0, last_parms_id);
@@ -277,13 +278,13 @@ void example_ckks_basics() // specifies function doesn't return a value
     print_line(__LINE__);
     cout << "Compute PI*x^3 + 0.4*x + 1." << endl;
     Ciphertext encrypted_result;
-    evaluator.add(x3_encrypted, x1_encrypted, encrypted_result);
-    evaluator.add_plain_inplace(encrypted_result, plain_coeff0);
+    evaluator.add(x3_encrypted, x1_encrypted, encrypted_result); // add for ciphertexts to get encrypted_result
+    evaluator.add_plain_inplace(encrypted_result, plain_coeff0); // add for plaintext and ciphertext to add the coeff to encrypted_result from prev line.
 
     /*
     First print the true result.
     */
-    Plaintext plain_result;
+    Plaintext plain_result; // so we can calculate the true result by doing the operation on the plaintext without the homo. bit
     print_line(__LINE__);
     cout << "Decrypt and decode PI*x^3 + 0.4x + 1." << endl;
     cout << "    + Expected result:" << endl;
@@ -293,16 +294,16 @@ void example_ckks_basics() // specifies function doesn't return a value
         double x = input[i];
         true_result.push_back((3.14159265 * x * x + 0.4) * x + 1);
     }
-    print_vector(true_result, 3, 7);
+    print_vector(true_result, 3, 7); // not printing all the values from the vector.
 
     /*
     Decrypt, decode, and print the result.
     */
-    decryptor.decrypt(encrypted_result, plain_result);
+    decryptor.decrypt(encrypted_result, plain_result); // decrypt first
     vector<double> result;
-    encoder.decode(plain_result, result);
+    encoder.decode(plain_result, result); // then decode the decrypted value
     cout << "    + Computed result ...... Correct." << endl;
-    print_vector(result, 3, 7);
+    print_vector(result, 3, 7); // now we can compare these and see that the expected and calculated results are the same.
 
     /*
     While we did not show any computations on complex numbers in these examples,
