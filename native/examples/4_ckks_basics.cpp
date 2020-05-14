@@ -3,10 +3,10 @@
 
 #include "examples.h"
 
-using namespace std;
+using namespace std; // namespace is a declarative region. Gives scope to identifiers in it.
 using namespace seal;
 
-void example_ckks_basics()
+void example_ckks_basics() // specifies function doesn't return a value
 {
     print_example_banner("Example: CKKS Basics");
 
